@@ -36,3 +36,7 @@ export const countryMostDeathsByHemisphere = (data: CovidData[]): CountryHemisph
 
   return { northern: northern.country, southern: southern.country }
 }
+
+/** Sum "active" field of all countries with at least 1,000,000 confirmed cases. */
+export const sumActiveForManyCases = (data: CovidData[]): number =>
+  data.reduce((acc, cur) => acc + (cur.confirmed >= 1e6 ? cur.active : 0), 0)
