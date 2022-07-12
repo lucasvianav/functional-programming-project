@@ -2,7 +2,7 @@
 
 // import readline from 'readline'
 
-import { urls } from "./utils"
+import { URLs } from "./utils"
 
 // const rl = readline.createInterface({
 //   input: process.stdin,
@@ -30,6 +30,6 @@ import { urls } from "./utils"
 // )
 
 const filename = '02-17-2022.csv'
-fetch(`${urls.rawUrl}/${filename}`).then(async r => {
+fetch(`${URLs.rawUrl}/${filename}`).then(async r => {
   const rawData = await r.text()
 })
