@@ -21,3 +21,8 @@ export interface CovidData {
   active: number
   deaths: number
 }
+
+export interface CountryHemispheres {
+  northern: string,
+  southern: string,
+}

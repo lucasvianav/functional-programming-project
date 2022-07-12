@@ -1,4 +1,5 @@
-import { CovidData } from './model'
+import { CountryHemispheres, CovidData } from './model'
+import { NORTHERN_HEMISPHERE, SOUTHERN_HEMISPHERE } from './utils'
 
 /**
  * Find the names of the three coutries with most confirmed cases in a dataset.
@@ -18,4 +19,20 @@ export const threeCountriesMostConfirmed = (data: CovidData[]): string[] => {
       return acc
     }, firstThree)
     .map(element => element.country)
+}
+
+/** Find the countries with mots death for the northern and southern hemispheres. */
+export const countryMostDeathsByHemisphere = (data: CovidData[]): CountryHemispheres => {
+  let northern: CovidData = { country: '', active: 0, deaths: 0, confirmed: 0 }
+  let southern: CovidData = { country: '', active: 0, deaths: 0, confirmed: 0 }
+
+  data.forEach(row => {
+    if (NORTHERN_HEMISPHERE.has(row.country) && row.deaths > northern.deaths) {
+      northern = row
+    } else if (SOUTHERN_HEMISPHERE.has(row.country) && row.deaths > southern.deaths) {
+      southern = row
+    }
+  })
+
+  return { northern: northern.country, southern: southern.country }
 }

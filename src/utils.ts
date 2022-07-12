@@ -43,5 +43,5 @@ export const parseCsvData = (raw: string): CovidData[] => {
   )
 }
 
-export const northernHemisphere = new Set([]);
-export const southernHemisphere = new Set([]);
+export const NORTHERN_HEMISPHERE: Set<string> = new Set([]);
+export const SOUTHERN_HEMISPHERE: Set<string> = new Set([]);
