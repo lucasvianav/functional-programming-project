@@ -40,5 +40,17 @@ export const parseCsvData = (raw: string): CovidData[] => {
   return data.filter(element => Object.values(element).every(v => typeof v === 'string' || !isNaN(v)));
 };
 
+export const getNHighest = <T>(list: T[], n: number, cmpFn: ((a: T, b: T) => number)): T[] => {
+  const firstN = list.splice(0, n).sort(cmpFn);
+  return list
+  .reduce((acc, cur) => {
+    if (cmpFn(cur, acc[0]) > 0) {
+      acc[0] = cur;
+      acc = acc.sort(cmpFn);
+    }
+    return acc;
+  }, firstN)
+}
+
 export const NORTHERN_HEMISPHERE: Set<string> = new Set([]);
 export const SOUTHERN_HEMISPHERE: Set<string> = new Set([]);

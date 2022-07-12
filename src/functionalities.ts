@@ -1,25 +1,11 @@
 import { CountryHemispheres, CovidData } from './model';
-import { NORTHERN_HEMISPHERE, SOUTHERN_HEMISPHERE } from './utils';
+import { getNHighest, NORTHERN_HEMISPHERE, SOUTHERN_HEMISPHERE } from './utils';
 
-/**
- * Find the names of the three coutries with most confirmed cases in a dataset.
- * @param data dataset to be considered
- * @returns three countries with most confirmed cases in alphabetical order
- */
-export const threeCountriesMostConfirmed = (data: CovidData[]): string[] => {
-  const sortFn = (a: CovidData, b: CovidData) => a.confirmed - b.confirmed;
-  const firstThree = data.splice(0, 3).sort(sortFn);
-
-  return data
-    .reduce((acc, cur) => {
-      if (cur.confirmed > acc[0].confirmed) {
-        acc[0] = cur;
-        acc = acc.sort(sortFn);
-      }
-      return acc;
-    }, firstThree)
-    .map(element => element.country);
-};
+/** Find the names (sorted) of the three coutries with most confirmed cases in a dataset. */
+export const threeCountriesMostConfirmed = (data: CovidData[]): string[] =>
+  getNHighest<CovidData>(data, 3, (a, b) => a.confirmed - b.confirmed)
+    .map(element => element.country)
+    .sort();
 
 /** Find the countries with mots death for the northern and southern hemispheres. */
 export const countryMostDeathsByHemisphere = (data: CovidData[]): CountryHemispheres => {
@@ -40,3 +26,11 @@ export const countryMostDeathsByHemisphere = (data: CovidData[]): CountryHemisph
 /** Sum "active" field of all countries with at least 1,000,000 confirmed cases. */
 export const sumActiveForManyCases = (data: CovidData[]): number =>
   data.reduce((acc, cur) => acc + (cur.confirmed >= 1e6 ? cur.active : 0), 0);
+
+/** Sum "death" fields for the 5 countries with the fewest active cases for the 10 with the most confirmed cases. */
+export const sumFewestDeathsInMostActives = (data: CovidData[]): number =>
+  getNHighest<CovidData>(
+    getNHighest<CovidData>(data, 10, (a, b) => a.active - b.active),
+    5,
+    (a, b) => b.confirmed - a.confirmed
+  ).reduce((acc, cur) => acc + cur.deaths, 0);
