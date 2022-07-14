@@ -1,12 +1,5 @@
 import { CovidData, CovidReportRow } from './model';
 
-/** "Databse" GitHub URLs. */
-export const URLs = {
-  datasetUrl: 'https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports',
-  rawUrl:
-    'https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports',
-};
-
 /** Parse a CSV file's data into a list of TypeScript objects. */
 export const parseCsvData = (raw: string): CovidData[] => {
   const list = raw.trim().split('\n').slice(1);
@@ -34,10 +27,11 @@ export const parseCsvData = (raw: string): CovidData[] => {
       active: rowData.Active,
       deaths: rowData.Deaths,
       confirmed: rowData.Confirmed,
+      latitude: rowData.Lat,
     };
   });
 
-  return data.filter(element => Object.values(element).every(v => typeof v === 'string' || !isNaN(v)));
+  return data;
 };
 
 export const getNHighest = <T>(list: T[], n: number, cmpFn: ((a: T, b: T) => number)): T[] => {

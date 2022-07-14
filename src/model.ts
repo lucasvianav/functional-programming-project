@@ -20,6 +20,7 @@ export interface CovidData {
   confirmed: number;
   active: number;
   deaths: number;
+  latitude: number;
 }
 
 export interface CountryHemispheres {
