@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "start": "export NODE_NO_WARNINGS=1; ts-node src/index.ts; export NODE_NO_WARNINGS=0",
+    "start": "ts-node src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,5 +19,8 @@
   "homepage": "https://github.com/lucasvianav/functional-programming-project#readme",
   "devDependencies": {
     "@types/node": "^18.0.3"
+  },
+  "dependencies": {
+    "csv-parse": "^5.3.0"
   }
 }

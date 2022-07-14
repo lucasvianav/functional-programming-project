@@ -1,33 +1,24 @@
 #!/usr/bin/ts-node
 
-// import readline from 'readline'
+import { parse } from 'csv-parse';
+import fs from 'fs';
+import { CovidData } from './model';
+import { formatCsvData } from './utils';
 
-// const rl = readline.createInterface({
-//   input: process.stdin,
-//   output: process.stdout,
-// })
+// if (process.argv.length !== 3) {
+//   throw 'Você deve passar como argumento apenas o nome de um arquivo CSV. Por exemplo: `npm start 02-17-2022.csv`';
+// }
 
-// ask user for the anme input
-// rl.question(
-//   'Qual arquivo .csv do dataset passado você quer ler? ',
-//   (filename: string) => {
-//     rl.close()
-
-//     if (!filename?.match(/[a-zA-Z0-9]+\.csv/)) {
-//       throw new Error(
-//         'O arquivo especificado é inválido. Acesse: https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports'
-//       )
-//     }
-
-//     fetch(
-//       `https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/${filename}`
-//     ).then(r => {
-//       r.text().then(console.log)
-//     })
-//   }
-// )
-
+// const filename = process.argv[2];
 const filename = '02-17-2022.csv';
-fetch(`${URLs.rawUrl}/${filename}`).then(async r => {
-  const rawData = await r.text();
+
+const parser = parse((err, parsed: string[][]) => {
+  if (err) {
+    throw err;
+  } else {
+    const data: CovidData[] = formatCsvData(parsed);
+    console.log(data);
+  }
 });
+
+fs.createReadStream(`./${filename}`).pipe(parser);

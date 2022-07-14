@@ -3,7 +3,7 @@ import { filterInvalidAttributes, getNHighest } from './utils';
 
 /** Find the names (sorted) of the three coutries with most confirmed cases in a dataset. */
 export const threeCountriesMostConfirmed = (data: CovidData[]): string[] => {
-  data = filterInvalidAttributes({ confirmed: 'string' }, data);
+  data = filterInvalidAttributes({ confirmed: 'number', country: 'string' }, data);
   return getNHighest<CovidData>(data, 3, (a, b) => a.confirmed - b.confirmed)
     .map(element => element.country)
     .sort();
@@ -11,7 +11,7 @@ export const threeCountriesMostConfirmed = (data: CovidData[]): string[] => {
 
 /** Find the countries with most deaths for the each hemisphere. */
 export const countryMostDeathsByHemisphere = (data: CovidData[]): CountryHemispheres => {
-  data = filterInvalidAttributes({ latitude: 'number', deaths: 'number' }, data);
+  data = filterInvalidAttributes({ latitude: 'number', deaths: 'number', country: 'string' }, data);
   let northern: CovidData = { country: '', active: 0, deaths: 0, confirmed: 0, latitude: 0 };
   let southern: CovidData = { country: '', active: 0, deaths: 0, confirmed: 0, latitude: 0 };
 
@@ -30,7 +30,7 @@ export const countryMostDeathsByHemisphere = (data: CovidData[]): CountryHemisph
 export const sumActiveForManyCases = (data: CovidData[]): number => {
   data = filterInvalidAttributes({ active: 'number', confirmed: 'number' }, data);
   return data.reduce((acc, cur) => acc + (cur.confirmed >= 1e6 ? cur.active : 0), 0);
-}
+};
 
 /** Sum "death" fields for the 5 countries with the fewest active cases for the 10 with the most confirmed cases. */
 export const sumFewestDeathsInMostActives = (data: CovidData[]): number => {

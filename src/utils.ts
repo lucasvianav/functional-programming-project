@@ -1,45 +1,61 @@
-import { CovidData, CovidReportRow } from './model';
+import { CovidData } from './model';
 
-/** Parse a CSV file's data into a list of TypeScript objects. */
-export const parseCsvData = (raw: string): CovidData[] => {
-  const list = raw.trim().split('\n').slice(1);
-  const data: CovidData[] = list.map(row => {
-    const fields = row.split(',');
-    const rowData: CovidReportRow = {
-      FIPS: parseInt(fields[0]),
-      Admin2: fields[1],
-      Province_State: fields[2],
-      Country_Region: fields[3],
-      Last_Update: new Date(fields[4]),
-      Lat: parseFloat(fields[5]),
-      Long_: parseFloat(fields[6]),
-      Confirmed: parseInt(fields[8]),
-      Deaths: parseInt(fields[8]),
-      Recovered: parseInt(fields[10]),
-      Active: parseInt(fields[11]),
-      Combined_Key: fields[12],
-      Incident_Rate: parseFloat(fields[13]),
-      Case_Fatality_Rati: parseFloat(fields[14]),
-    };
+/**
+ * Parse a CSV file's data into a list of TypeScript objects.
+ * @param raw parsed .csv data as a list of lists of strings, the first one being the .csv headers
+ * @returns the formatted data
+ */
+export const formatCsvData = (raw: string[][]): CovidData[] => {
+  const headers = raw[0];
+  const targetHeaders: { [P in keyof CovidData]?: number } = {};
+  const mapTargetHeadersToFieldName: { [P in keyof CovidData]: string } = {
+    country: 'country',
+    confirmed: 'confirm',
+    active: 'active',
+    deaths: 'death',
+    latitude: 'lat',
+  };
 
-    return {
-      country: rowData.Country_Region,
-      active: rowData.Active,
-      deaths: rowData.Deaths,
-      confirmed: rowData.Confirmed,
-      latitude: rowData.Lat,
-    };
+  headers.forEach((header, i) => {
+    Object.entries(mapTargetHeadersToFieldName).forEach(entry => {
+      const [attr, startingName] = entry;
+      if (header.toLowerCase().startsWith(startingName)) {
+        targetHeaders[attr as keyof CovidData] = i;
+      }
+    });
+  });
+
+  const data: CovidData[] = raw.slice(1).map(fields => {
+    const formatted: CovidData = {} as any;
+
+    if (targetHeaders.country !== undefined) {
+      formatted.country = fields[targetHeaders.country];
+    }
+    if (targetHeaders.confirmed !== undefined) {
+      formatted.confirmed = parseInt(fields[targetHeaders.confirmed]);
+    }
+    if (targetHeaders.active !== undefined) {
+      formatted.active = parseInt(fields[targetHeaders.active]);
+    }
+    if (targetHeaders.deaths !== undefined) {
+      formatted.deaths = parseInt(fields[targetHeaders.deaths]);
+    }
+    if (targetHeaders.latitude !== undefined) {
+      formatted.deaths = parseFloat(fields[targetHeaders.latitude]);
+    }
+
+    return formatted;
   });
 
   return data;
 };
 
 /**
-  * Extract the `n` highest elements from a list.
-  * @param list the target dataset (to extract elements from)
-  * @param n number of elements elements to extract
-  * @param cmpFn function to compare two elements in `list` (return <0 if a < b and >0 otherwise)
-  */
+ * Extract the `n` highest elements from a list.
+ * @param list the target dataset (to extract elements from)
+ * @param n number of elements elements to extract
+ * @param cmpFn function to compare two elements in `list` (return <0 if a < b and >0 otherwise)
+ */
 export const getNHighest = <T>(list: T[], n: number, cmpFn: (a: T, b: T) => number): T[] => {
   if (list.length <= n) {
     return list;
