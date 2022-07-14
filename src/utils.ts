@@ -1,4 +1,4 @@
-import { CovidData } from './model';
+import { CovidData, CovidDataMultipleLocations } from './model';
 
 /**
  * Parse a CSV file's data into a list of TypeScript objects.
@@ -35,30 +35,96 @@ export const formatCsvData = (raw: string[][]): CovidData[] => {
     });
   });
 
-  // format existing fields for each row
-  const data: CovidData[] = raw.slice(1).map(fields => {
-    const formatted: CovidData = {} as any;
+  /**
+   * Object in which the keys are the countries (or indices) and the values
+   * are the data. This is necessary instead of a plain array because we want
+   * to accumulate the data for each country in a way that each one has
+   * a single entry in the dataset.
+   */
+  const data: { [k: string | number]: CovidDataMultipleLocations } = {};
+  /**
+   * Object in which the keys are the countries and the values
+   * are objects that have a flag for each desired attribute
+   * indicating if it has at least one valid numeric value.
+   */
+  const countryHasNotNaN: { [k: string]: { [P in keyof CovidDataMultipleLocations]?: boolean } } = {};
 
-    if (targetFieldsIndex.country !== undefined) {
-      formatted.country = fields[targetFieldsIndex.country];
+  // format existing fields for each row and
+  // merge multiple rows with the same country
+  raw.slice(1).forEach((fields, i) => {
+    /** Current dataset entry. */
+    let curr: CovidDataMultipleLocations, value: number;
+    /** Object used to initialize a new entry to `data`. */
+    const init: CovidDataMultipleLocations = { active: 0, deaths: 0, latitude: [], confirmed: 0 };
+    /** The country's name. */
+    const country = targetFieldsIndex.country !== undefined ? fields[targetFieldsIndex.country] : '';
+
+    // set `curr` to the current dataset entry
+    if (country) {
+      // if a country name was provided, but this is it's first appearance
+      if (!data[country]) {
+        data[country] = { ...init };
+        countryHasNotNaN[country] = { active: false, deaths: false, confirmed: false };
+      }
+      curr = data[country];
+    } else {
+      // if no country name was provided, map to index
+      data[i] = { ...init };
+      curr = data[i];
     }
+
+    // save each numeric attribute in it's own way
+    // confirmed, active, deaths: sum int (accumulate)
+    // latitude: save floats in list to use the average
     if (targetFieldsIndex.confirmed !== undefined) {
-      formatted.confirmed = parseInt(fields[targetFieldsIndex.confirmed]);
+      value = parseInt(fields[targetFieldsIndex.confirmed]);
+      if (country) {
+        countryHasNotNaN[country].confirmed ||= !isNaN(value);
+        value ||= 0;
+      }
+      curr.confirmed += value;
     }
     if (targetFieldsIndex.active !== undefined) {
-      formatted.active = parseInt(fields[targetFieldsIndex.active]);
+      value = parseInt(fields[targetFieldsIndex.active]);
+      if (country) {
+        countryHasNotNaN[country].active ||= !isNaN(value);
+        value ||= 0;
+      }
+      curr.active += value;
     }
     if (targetFieldsIndex.deaths !== undefined) {
-      formatted.deaths = parseInt(fields[targetFieldsIndex.deaths]);
+      value = parseInt(fields[targetFieldsIndex.deaths]);
+      if (country) {
+        countryHasNotNaN[country].deaths ||= !isNaN(value);
+        value ||= 0;
+      }
+      curr.deaths += value;
     }
     if (targetFieldsIndex.latitude !== undefined) {
-      formatted.deaths = parseFloat(fields[targetFieldsIndex.latitude]);
+      value = parseFloat(fields[targetFieldsIndex.latitude]);
+      if (!isNaN(value)) {
+        curr.latitude.push(value);
+      }
     }
-
-    return formatted;
   });
 
-  return data;
+  // validate accumulated numeric attributes, calculate average
+  // latitude and include country name in the resulting object
+  return Object.entries(data).map<CovidData>(entry => {
+    const [countryOrIndex, element] = entry as [string | number, CovidDataMultipleLocations];
+    const country: string = typeof countryOrIndex === 'number' ? '' : countryOrIndex;
+    const latitude = element.latitude ? average(element.latitude) : NaN;
+
+    if (country) {
+      // validate numeric values (check for non-NaN)
+      Object.entries(countryHasNotNaN[country]).forEach(entry => {
+        const [key, hasNotNaN] = entry as [keyof CovidDataMultipleLocations, boolean];
+        element[key] = hasNotNaN ? element[key] : NaN;
+      });
+    }
+
+    return { ...element, country, latitude };
+  });
 };
 
 /**
@@ -113,3 +179,6 @@ export const filterInvalidAttributes = <T extends Object>(attr: { [k: string]: s
       }
     })
   );
+
+/** Calculate the average of a list of numbers. */
+export const average = (arr: number[]): number => arr.reduce((acc, cur) => acc + cur, 0) / arr.length;

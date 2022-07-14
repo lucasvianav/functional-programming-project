@@ -3,7 +3,12 @@
 import { parse } from 'csv-parse';
 import fs from 'fs';
 import { ErrorMessage } from './errors';
-import { countryMostDeathsByHemisphere, sumActiveForManyCases, sumFewestDeathsInMostActives, threeCountriesMostConfirmed } from './functionalities';
+import {
+  countryMostDeathsByHemisphere,
+  sumActiveForManyCases,
+  sumFewestDeathsInMostActives,
+  threeCountriesMostConfirmed,
+} from './functionalities';
 import { CovidData } from './model';
 import { formatCsvData } from './utils';
 
@@ -32,8 +37,8 @@ const parser = parse((err, parsed: string[][]) => {
     ];
 
     functionalities.forEach((output, index) => {
-      console.log(`${index + 1}) ${output || ErrorMessage.NotEnoughData}`)
-    })
+      console.log(`${index + 1}) ${output || ErrorMessage.NotEnoughData}`);
+    });
   }
 });
 

@@ -1,4 +1,4 @@
-import { CountryHemispheres, CovidData } from './model';
+import { CovidData, PerCountryHemispheres } from './model';
 import { filterInvalidAttributes, getNLargest } from './utils';
 
 /** Find the names (sorted) of the three coutries with most confirmed cases in a dataset. */
@@ -10,7 +10,7 @@ export const threeCountriesMostConfirmed = (data: CovidData[]): string[] => {
 };
 
 /** Find the countries with most deaths for the each hemisphere. */
-export const countryMostDeathsByHemisphere = (data: CovidData[]): CountryHemispheres => {
+export const countryMostDeathsByHemisphere = (data: CovidData[]): PerCountryHemispheres<string> => {
   data = filterInvalidAttributes({ latitude: 'number', deaths: 'number', country: 'string' }, data);
   let northern: CovidData = { country: '', active: 0, deaths: 0, confirmed: 0, latitude: 0 };
   let southern: CovidData = { country: '', active: 0, deaths: 0, confirmed: 0, latitude: 0 };
