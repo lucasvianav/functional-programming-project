@@ -6,9 +6,18 @@ import { CovidData } from './model';
  * @returns the formatted data
  */
 export const formatCsvData = (raw: string[][]): CovidData[] => {
+  /** Original .csv headers. */
   const headers = raw[0];
-  const targetHeaders: { [P in keyof CovidData]?: number } = {};
-  const mapTargetHeadersToFieldName: { [P in keyof CovidData]: string } = {
+  /**
+   * Object in which the key is the desired attribute's name
+   * and the value is it's index in the raw data row array.
+   */
+  const targetFieldsIndex: { [P in keyof CovidData]?: number } = {};
+  /**
+   * Object in which the keys are the desired attributes' names and the
+   * values are how their raw header names are expected to start with.
+   */
+  const mapTargetFieldsToRawHeader: { [P in keyof CovidData]: string } = {
     country: 'country',
     confirmed: 'confirm',
     active: 'active',
@@ -16,32 +25,34 @@ export const formatCsvData = (raw: string[][]): CovidData[] => {
     latitude: 'lat',
   };
 
-  headers.forEach((header, i) => {
-    Object.entries(mapTargetHeadersToFieldName).forEach(entry => {
+  // populate `targetFieldsIndex`
+  headers.forEach((header, index) => {
+    Object.entries(mapTargetFieldsToRawHeader).forEach(entry => {
       const [attr, startingName] = entry;
       if (header.toLowerCase().startsWith(startingName)) {
-        targetHeaders[attr as keyof CovidData] = i;
+        targetFieldsIndex[attr as keyof CovidData] = index;
       }
     });
   });
 
+  // format existing fields for each row
   const data: CovidData[] = raw.slice(1).map(fields => {
     const formatted: CovidData = {} as any;
 
-    if (targetHeaders.country !== undefined) {
-      formatted.country = fields[targetHeaders.country];
+    if (targetFieldsIndex.country !== undefined) {
+      formatted.country = fields[targetFieldsIndex.country];
     }
-    if (targetHeaders.confirmed !== undefined) {
-      formatted.confirmed = parseInt(fields[targetHeaders.confirmed]);
+    if (targetFieldsIndex.confirmed !== undefined) {
+      formatted.confirmed = parseInt(fields[targetFieldsIndex.confirmed]);
     }
-    if (targetHeaders.active !== undefined) {
-      formatted.active = parseInt(fields[targetHeaders.active]);
+    if (targetFieldsIndex.active !== undefined) {
+      formatted.active = parseInt(fields[targetFieldsIndex.active]);
     }
-    if (targetHeaders.deaths !== undefined) {
-      formatted.deaths = parseInt(fields[targetHeaders.deaths]);
+    if (targetFieldsIndex.deaths !== undefined) {
+      formatted.deaths = parseInt(fields[targetFieldsIndex.deaths]);
     }
-    if (targetHeaders.latitude !== undefined) {
-      formatted.deaths = parseFloat(fields[targetHeaders.latitude]);
+    if (targetFieldsIndex.latitude !== undefined) {
+      formatted.deaths = parseFloat(fields[targetFieldsIndex.latitude]);
     }
 
     return formatted;
@@ -51,12 +62,15 @@ export const formatCsvData = (raw: string[][]): CovidData[] => {
 };
 
 /**
- * Extract the `n` highest elements from a list.
+ * Extract the `n` largest elements from a list.
  * @param list the target dataset (to extract elements from)
  * @param n number of elements elements to extract
  * @param cmpFn function to compare two elements in `list` (return <0 if a < b and >0 otherwise)
+ * @returns the n largest elements in `list` according to `cmpFn`
  */
-export const getNHighest = <T>(list: T[], n: number, cmpFn: (a: T, b: T) => number): T[] => {
+export const getNLargest = <T>(list: T[], n: number, cmpFn: (a: T, b: T) => number): T[] => {
+  // if list has fewer elements than
+  // desired, the result is itself
   if (list.length <= n) {
     return list;
   }
@@ -84,14 +98,15 @@ export const filterInvalidAttributes = <T extends Object>(attr: { [k: string]: s
 
       if (attr[key] && typeof value === attr[key]) {
         switch (attr[key]) {
-          case 'number':
+          case 'number': // NaN is invalid
             return !isNaN(value);
-          case 'string':
+          case 'string': // empty string if invalid
             return !!value;
           default:
             return true;
         }
       } else if (attr[key]) {
+        // attribute exists but has unexpected type
         return false;
       } else {
         return true;
