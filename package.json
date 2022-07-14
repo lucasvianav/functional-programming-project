@@ -18,7 +18,8 @@
   },
   "homepage": "https://github.com/lucasvianav/functional-programming-project#readme",
   "devDependencies": {
-    "@types/node": "^18.0.3"
+    "@types/node": "^18.0.3",
+    "ts-node": "^10.9.1"
   },
   "dependencies": {
     "csv-parse": "^5.3.0"
