@@ -2,23 +2,40 @@
 
 import { parse } from 'csv-parse';
 import fs from 'fs';
+import { ErrorMessage } from './errors';
+import { countryMostDeathsByHemisphere, sumActiveForManyCases, sumFewestDeathsInMostActives, threeCountriesMostConfirmed } from './functionalities';
 import { CovidData } from './model';
 import { formatCsvData } from './utils';
 
-// if (process.argv.length !== 3) {
-//   throw 'Você deve passar como argumento apenas o nome de um arquivo CSV. Por exemplo: `npm start 02-17-2022.csv`';
-// }
+// validate input filename
+if (process.argv.length !== 3) {
+  throw ErrorMessage.WrongCliArgs;
+}
+const filename = process.argv[2];
+if (!fs.existsSync(`./${filename}`)) {
+  throw ErrorMessage.FileNotFound;
+}
 
-// const filename = process.argv[2];
-const filename = '02-17-2022.csv';
-
+// object to parse the data from the .csv file and execute a callback
 const parser = parse((err, parsed: string[][]) => {
   if (err) {
     throw err;
   } else {
     const data: CovidData[] = formatCsvData(parsed);
-    console.log(data);
+    const { northern, southern } = countryMostDeathsByHemisphere(data);
+    const functionalities = [
+      threeCountriesMostConfirmed(data).join(', '),
+      sumFewestDeathsInMostActives(data),
+      southern,
+      northern,
+      sumActiveForManyCases(data),
+    ];
+
+    functionalities.forEach((output, index) => {
+      console.log(`${index + 1}) ${output || ErrorMessage.NotEnoughData}`)
+    })
   }
 });
 
+// read the specified file and apply the requested operations
 fs.createReadStream(`./${filename}`).pipe(parser);
