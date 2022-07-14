@@ -2,8 +2,6 @@
 
 // import readline from 'readline'
 
-import { URLs } from './utils';
-
 // const rl = readline.createInterface({
 //   input: process.stdin,
 //   output: process.stdout,
