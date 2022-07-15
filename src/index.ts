@@ -24,7 +24,7 @@ if (!fs.existsSync(`./${filename}`)) {
 // object to parse the data from the .csv file and execute a callback
 const parser = parse((err, parsed: string[][]) => {
   if (err) {
-    throw err;
+    throw ErrorMessage.InvalidCSV;
   } else {
     const data: CovidData[] = formatCsvData(parsed);
     const { northern, southern } = countryMostDeathsByHemisphere(data);
